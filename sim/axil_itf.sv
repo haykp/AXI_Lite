@@ -1,6 +1,7 @@
+
 interface axil_itf (
-			bit     aclk,
-			bit     aresetn
+			input bit     aclk,
+			input bit     aresetn
 	  );
 	  
 	 /**************** Write Address Channel Signals ******************/
@@ -36,6 +37,7 @@ interface axil_itf (
 	  logic         					 app_ren;
 	  logic [32-1:0]					 app_rdata;
 	  logic                              app_wdone ;
-	  logic                              app_rdone 
+	  logic                              app_rdone ;
 			  
 endinterface
+

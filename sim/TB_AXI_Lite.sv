@@ -1,3 +1,4 @@
+
 module TB_AXI_Lite ();
 
 // Clock signal
@@ -7,7 +8,7 @@ bit                   reset;
 
 axil_itf itf (.aclk(clock), .aresetn(reset) );
 
-axis_lite_m  axil_m ( 
+axis_lite_m  inst_axil_m ( 
 			  /**************** System Signals *******************************/
 			 .aclk 				(	itf.aclk			),
 			 .aresetn			(	itf.aresetn			),
@@ -47,34 +48,33 @@ axis_lite_m  axil_m (
 			 .app_rdone 		(	itf.app_rdone		)
 			);
 
-axi_vip_0 your_instance_name (
-  .aclk				(itf.aclk),                    // input wire aclk
-  .aresetn			(itf.aresetn),              // input wire aresetn
-  .s_axi_awaddr		(itf.axi_awaddr),    // input wire [31 : 0] s_axi_awaddr
-  .s_axi_awprot		(itf.axi_awprot),    // input wire [2 : 0] s_axi_awprot
-  .s_axi_awvalid	(itf.axi_awvalid),  // input wire s_axi_awvalid
-  .s_axi_awready	(itf.axi_awready),  // output wire s_axi_awready
-  .s_axi_wdata		(itf.axi_wdata),      // input wire [31 : 0] s_axi_wdata
-  .s_axi_wstrb		(itf.axi_wstrb),      // input wire [3 : 0] s_axi_wstrb
-  .s_axi_wvalid		(itf.axi_wvalid),    // input wire s_axi_wvalid
-  .s_axi_wready		(itf.axi_wready),    // output wire s_axi_wready
-  .s_axi_bresp		(itf.axi_bresp),      // output wire [1 : 0] s_axi_bresp
-  .s_axi_bvalid		(itf.axi_bvalid),    // output wire s_axi_bvalid
-  .s_axi_bready		(itf.axi_bready),    // input wire s_axi_bready
-  .s_axi_araddr		(itf.axi_araddr),    // input wire [31 : 0] s_axi_araddr
-  .s_axi_arprot		(itf.axi_arprot),    // input wire [2 : 0] s_axi_arprot
-  .s_axi_arvalid	(itf.axi_arvalid),  // input wire s_axi_arvalid
-  .s_axi_arready	(itf.axi_arready),  // output wire s_axi_arready
-  .s_axi_rdata		(itf.axi_rdata),      // output wire [31 : 0] s_axi_rdata
-  .s_axi_rresp		(itf.axi_rresp),      // output wire [1 : 0] s_axi_rresp
-  .s_axi_rvalid		(itf.axi_rvalid),    // output wire s_axi_rvalid
-  .s_axi_rready		(itf.axi_rready)    // input wire s_axi_rready
+axi_vip_0 inst_axil_s (
+			  .aclk				(itf.aclk),                    // input wire aclk
+			  .aresetn			(itf.aresetn),              // input wire aresetn
+			  .s_axi_awaddr		(itf.axi_awaddr),    // input wire [31 : 0] s_axi_awaddr
+			  .s_axi_awprot		(itf.axi_awprot),    // input wire [2 : 0] s_axi_awprot
+			  .s_axi_awvalid	(itf.axi_awvalid),  // input wire s_axi_awvalid
+			  .s_axi_awready	(itf.axi_awready),  // output wire s_axi_awready
+			  .s_axi_wdata		(itf.axi_wdata),      // input wire [31 : 0] s_axi_wdata
+			  .s_axi_wstrb		(itf.axi_wstrb),      // input wire [3 : 0] s_axi_wstrb
+			  .s_axi_wvalid		(itf.axi_wvalid),    // input wire s_axi_wvalid
+			  .s_axi_wready		(itf.axi_wready),    // output wire s_axi_wready
+			  .s_axi_bresp		(itf.axi_bresp),      // output wire [1 : 0] s_axi_bresp
+			  .s_axi_bvalid		(itf.axi_bvalid),    // output wire s_axi_bvalid
+			  .s_axi_bready		(itf.axi_bready),    // input wire s_axi_bready
+			  .s_axi_araddr		(itf.axi_araddr),    // input wire [31 : 0] s_axi_araddr
+			  .s_axi_arprot		(itf.axi_arprot),    // input wire [2 : 0] s_axi_arprot
+			  .s_axi_arvalid	(itf.axi_arvalid),  // input wire s_axi_arvalid
+			  .s_axi_arready	(itf.axi_arready),  // output wire s_axi_arready
+			  .s_axi_rdata		(itf.axi_rdata),      // output wire [31 : 0] s_axi_rdata
+			  .s_axi_rresp		(itf.axi_rresp),      // output wire [1 : 0] s_axi_rresp
+			  .s_axi_rvalid		(itf.axi_rvalid),    // output wire s_axi_rvalid
+			  .s_axi_rready		(itf.axi_rready)    // input wire s_axi_rready
 );
-
    
-
 	
-task write_data ( input axil_itf itf );
+task write_data ( axil_itf itf );
+	$display ("[INFO] Calling write_data task");
 	
 	itf.app_waddr <= 32'haaaa_bbbb;
 	itf.app_wdata <= 32'h5aa5_a55a;
@@ -87,7 +87,8 @@ task write_data ( input axil_itf itf );
 
 endtask
 
-task read_data ( input axil_itf itf	);
+task read_data ( axil_itf itf	);
+	$display ("[INFO]Calling read_data task");
 	
 	itf.app_raddr <= 32'haaaa_bbbb;
 	@ ( posedge itf.aclk);
@@ -97,7 +98,7 @@ task read_data ( input axil_itf itf	);
 
 endtask	
 	
-////// MAIN	
+////// MAIN	////
   initial begin
     reset <= 1'b1;
     repeat (5) @(negedge clock);
@@ -113,6 +114,6 @@ endtask
 		@ ( posedge itf.aclk);
 		
 		write_data (itf);
-		
+	end
 	
 endmodule
