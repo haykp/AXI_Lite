@@ -1,4 +1,3 @@
-
 module TB_AXI_Lite ();
 
 // Clock signal
@@ -13,29 +12,29 @@ axis_lite_m  inst_axil_m (
 			 .aclk 				(	itf.aclk			),
 			 .aresetn			(	itf.aresetn			),
 			 /**************** Write Address Channel Signals ******************/
-			 .m_axi_awaddr		(	itf.m_axi_awaddr	),
-			 .m_axi_awprot		(	itf.m_axi_awprot	),
-			 .m_axi_awvalid		(	itf.m_axi_awvalid  	),
-			 .m_axi_awready		(	itf.m_axi_awready  	),
+			 .m_axi_awaddr		(	itf.axi_awaddr	),
+			 .m_axi_awprot		(	itf.axi_awprot	),
+			 .m_axi_awvalid		(	itf.axi_awvalid  	),
+			 .m_axi_awready		(	itf.axi_awready  	),
 			  /**************** Write Data Channel Signals *******************/
-			 .m_axi_wdata		(	itf.m_axi_wdata		),
-			 .m_axi_wstrb		(	itf.m_axi_wstrb		),
-			 .m_axi_wvalid		(	itf.m_axi_wvalid	),
-			 .m_axi_wready		(	itf.m_axi_wready	),
+			 .m_axi_wdata		(	itf.axi_wdata		),
+			 .m_axi_wstrb		(	itf.axi_wstrb		),
+			 .m_axi_wvalid		(	itf.axi_wvalid	),
+			 .m_axi_wready		(	itf.axi_wready	),
 			  /**************** Write Response Channel Signals ***************/
-			 .m_axi_bresp		(	itf.m_axi_bresp		),
-			 .m_axi_bvalid		(	itf.m_axi_bvalid   	),
-			 .m_axi_bready		(	itf.m_axi_bready   	),
+			 .m_axi_bresp		(	itf.axi_bresp		),
+			 .m_axi_bvalid		(	itf.axi_bvalid   	),
+			 .m_axi_bready		(	itf.axi_bready   	),
 			  /**************** Read Address Channel Signals ****************/
-			 .m_axi_araddr		(	itf.m_axi_araddr	),
-			 .m_axi_arprot		(	itf.m_axi_arprot	),
-			 .m_axi_arvalid		(	itf.m_axi_arvalid  	),
-			 .m_axi_arready		(	itf.m_axi_arready  	),
+			 .m_axi_araddr		(	itf.axi_araddr	),
+			 .m_axi_arprot		(	itf.axi_arprot	),
+			 .m_axi_arvalid		(	itf.axi_arvalid  	),
+			 .m_axi_arready		(	itf.axi_arready  	),
 			  /**************** Read Data Channel Signals ********************/
-			 .m_axi_rdata		(	itf.m_axi_rdata		),
-			 .m_axi_rresp		(	itf.m_axi_rresp    	),
-			 .m_axi_rvalid		(	itf.m_axi_rvalid   	),
-			 .m_axi_rready		(	itf.m_axi_rready   	),
+			 .m_axi_rdata		(	itf.axi_rdata		),
+			 .m_axi_rresp		(	itf.axi_rresp    	),
+			 .m_axi_rvalid		(	itf.axi_rvalid   	),
+			 .m_axi_rready		(	itf.axi_rready   	),
 			  /**************** User Signals *******************************/
 			 .app_waddr			(	itf.app_waddr		),
 			 .app_wdata			(	itf.app_wdata		),
@@ -73,7 +72,7 @@ axi_vip_0 inst_axil_s (
 );
    
 	
-task write_data ( axil_itf itf );
+task write_data ;
 	$display ("[INFO] Calling write_data task");
 	
 	itf.app_waddr <= 32'haaaa_bbbb;
@@ -87,7 +86,7 @@ task write_data ( axil_itf itf );
 
 endtask
 
-task read_data ( axil_itf itf	);
+task read_data;
 	$display ("[INFO]Calling read_data task");
 	
 	itf.app_raddr <= 32'haaaa_bbbb;
@@ -113,7 +112,7 @@ endtask
 		@ ( posedge itf.aclk);
 		@ ( posedge itf.aclk);
 		
-		write_data (itf);
+		write_data ;
 	end
 	
 endmodule
