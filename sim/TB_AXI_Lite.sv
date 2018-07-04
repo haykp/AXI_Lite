@@ -1,3 +1,8 @@
+
+import axi_vip_pkg::*;
+import axi_vip_0_pkg::*;
+
+
 module TB_AXI_Lite ();
 
 // Clock signal
@@ -5,7 +10,17 @@ bit                   clock;
 // Reset signal
 bit                   reset;
 
-axil_itf itf (.aclk(clock), .aresetn(reset) );
+// for AXIS-L slave VIP to work
+axi_vip_0_slv_t slv_agent; // define the agent
+
+initial
+begin
+	slv_agent = new("slv_agent",TB_AXI_Lite.inst_axil_s.inst.IF);
+	slv_agent.start_slave();
+end
+
+
+axil_itf itf (.aclk(clock), .aresetn(~reset) );
 
 axis_lite_m  inst_axil_m ( 
 			  /**************** System Signals *******************************/
@@ -101,6 +116,7 @@ endtask
   initial begin
     reset <= 1'b1;
     repeat (5) @(negedge clock);
+	reset <= 1'b0;
   end
 
     always #10 clock <= ~clock;	
@@ -108,11 +124,14 @@ endtask
 	
 	initial
 	begin
-		@ ( posedge reset);
+		@ ( negedge reset);
 		@ ( posedge itf.aclk);
 		@ ( posedge itf.aclk);
 		
-		write_data ;
+		fork
+			write_data ;
+			read_data ;
+		join
 	end
 	
 endmodule
