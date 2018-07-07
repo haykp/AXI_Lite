@@ -11,7 +11,8 @@ bit                   clock;
 bit                   reset;
 
 // for AXIS-L slave VIP to work
-axi_vip_0_slv_t slv_agent; // define the agent
+//axi_vip_0_slv_t slv_agent; // define the agent, without memory
+axi_vip_0_slv_mem_t slv_agent; // define the agent
 
 initial
 begin
@@ -55,11 +56,13 @@ axis_lite_m  inst_axil_m (
 			 .app_wdata			(	itf.app_wdata		),
 			 .app_wen			(	itf.app_wen			),	
 			 .app_wdone 		(	itf.app_wdone		),
+			 .app_werror		(	itf.app_werror		),
 			 
 			 .app_raddr			(	itf.app_raddr		),
 			 .app_ren			(	itf.app_ren			),	
 			 .app_rdata			(	itf.app_rdata		),
-			 .app_rdone 		(	itf.app_rdone		)
+			 .app_rdone 		(	itf.app_rdone		),
+			 .app_rerror 		(	itf.app_rerror		)
 			);
 
 axi_vip_0 inst_axil_s (
@@ -107,10 +110,24 @@ task read_data;
 	itf.app_raddr <= 32'haaaa_bbbb;
 	@ ( posedge itf.aclk);
 	itf.app_ren <= 1'b1;
+	
 	@ ( posedge itf.app_rdone);	
 	@ ( posedge itf.aclk);
+	$display ("[INFO] END Calling read_data task");
 
 endtask	
+
+task read_data1 ( input logic [31:0] r_addr );
+	$display ("[INFO]Calling read_data1 task");
+	
+	itf.app_raddr <= 32'haaaa_bbbb;
+	@ ( posedge itf.aclk);
+	itf.app_ren <= 1'b1;
+	@ ( posedge itf.app_rdone);	
+	@ ( posedge itf.aclk);
+	$display ("[INFO] END Calling read_data1 task");
+endtask	
+	
 	
 ////// MAIN	////
   initial begin
@@ -124,14 +141,40 @@ endtask
 	
 	initial
 	begin
-		@ ( negedge reset);
-		@ ( posedge itf.aclk);
-		@ ( posedge itf.aclk);
+		itf.app_ren <= 1'b0;
 		
-		fork
-			write_data ;
+		@ ( negedge reset);
+		repeat (3) 
+			@ ( posedge itf.aclk);
+		
+		
+		//fork
+				//write_data ;
 			read_data ;
-		join
+			read_data1 (32'haaaa_bbbb);
+		//join
+	end
+
+// backdoor write to AXIL VIP memory
+wire [3:0] wstrb_bd;
+assign wstrb_bd = (itf.axi_awvalid && itf.axi_awready) ? 4'b1111 : 4'b0000;
+	
+	initial
+	begin
+		$display ("[INFO] Calling backdoor write strobe task");
+	   slv_agent.mem_model.backdoor_memory_write  (
+	   .addr (32'haaaa_bbbb),
+	   .payload (32'hbbbb_cccc),
+	   .strb (4'b1111)
+	   );
 	end
 	
 endmodule
+
+
+// function void backdoor_memory_write(	
+// input 	xil_axi_ulong 	addr,
+// input logic 	[C_AXI_WDATA_WIDTH-1:0] 	payload,
+// input logic 	[C_AXI_WDATA_WIDTH/8-1:0] 	strb 
+// )
+
