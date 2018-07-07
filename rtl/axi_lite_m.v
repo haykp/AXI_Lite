@@ -40,7 +40,7 @@ module axis_lite_m (
 			  
 			  input	wire [32-1:0]					 app_raddr,
 			  input	wire         					 app_ren,
-			  output reg [32-1:0]					 app_rdata,
+			  output wire [32-1:0]					 app_rdata,
 			  output                                 app_wdone ,
 			  output                                 app_werror ,
 			  output                                 app_rdone ,
@@ -51,6 +51,7 @@ module axis_lite_m (
 
 /**************** Write Channel ******************/
 wire waddr_done,wdata_done,wresp_slave, wresp_slave_final;
+//axis to send write address
 axis_m axis_waddr ( .areset_n(aresetn), .aclk(aclk), 
 					.data		(app_waddr), 
 					.send		(app_wen),
@@ -64,7 +65,7 @@ axis_m axis_waddr ( .areset_n(aresetn), .aclk(aclk),
 			);
 			
 assign m_axi_awprot = 3'o0;
-// wdata
+//axis to send write data
 axis_m axis_wdata ( .areset_n(aresetn), .aclk(aclk), 
 					.data		(app_wdata), 
 					.send		(app_wen),
@@ -81,7 +82,7 @@ assign m_axi_wstrb = (m_axi_wvalid) ? 4'b1111 : 4'b0000; // all bytes of line co
 
 // wresponse
 wire [31:0] wchnl_resp; // this is bresp of the master. Only the last 2 bits are valid bits
-
+//axis slave to receive write response
 axis_s axis_resp ( .areset_n(aresetn), .aclk(aclk),
 					.data		(wchnl_resp),
 					.ready 		(app_wen), // user saying slave is ready
@@ -100,10 +101,11 @@ assign app_wdone = waddr_done && wdata_done && wresp_slave_final ;
 assign app_werror = wresp_slave && (wchnl_resp[1:0] ==2'b10 || wchnl_resp[1:0] ==2'b11 );
 
 /**************** Read Channel ******************/
-wire raddr_done;
+wire raddr_done,rdata_done;
 
 assign m_axi_arprot = 1'b0;
 
+// asis slave to send read address
 axis_m axis_raddr ( .areset_n(aresetn), .aclk(aclk), 
 					.data		(app_raddr), 
 					.send		(app_ren),
@@ -115,9 +117,10 @@ axis_m axis_raddr ( .areset_n(aresetn), .aclk(aclk),
 					
 					.finish		(raddr_done)
 			);
-wire [31:0] rchnl_resp;
+
+// axis to receive read data value			
 axis_s axis_rdata ( .areset_n(aresetn), .aclk(aclk),
-					.data		(rchnl_resp),
+					.data		(app_rdata),
 					.ready 		(app_ren), // user saying slave is ready
 					
 					.tready 	(m_axi_rready),
@@ -125,10 +128,10 @@ axis_s axis_rdata ( .areset_n(aresetn), .aclk(aclk),
 					.tlast		(m_axi_rvalid),
 					.tdata		(m_axi_rdata ),
 					
-					.finish		(resp_slave_finish)
+					.finish		(rdata_done)
 			);
 
-assign app_rdone = raddr_done && resp_slave_finish && (m_axi_rresp[1:0] ==2'b00 || m_axi_rresp[1:0] ==2'b01 );
+assign app_rdone = raddr_done && rdata_done && (m_axi_rresp[1:0] ==2'b00 || m_axi_rresp[1:0] ==2'b01 );
 assign app_rerror = wresp_slave && (m_axi_rresp[1:0] ==2'b10 || m_axi_rresp[1:0] ==2'b11 );
 	
 

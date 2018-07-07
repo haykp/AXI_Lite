@@ -6,14 +6,15 @@
 `timescale 1us/1us
 
 module axis_m ( input areset_n, aclk, 
-			  input [31:0] data, 
-			  input send,
-			  input tready, 
-              output reg tvalid,
-			  output tlast, 
+			  input [31:0]		data, 		// user data that needs to be sent by axis
+			  input 			send,		// user send command, user asks axis_m to send the data
+			  //AXIS protocol signals
+			  input 			tready, 	
+              output reg 		tvalid,
+			  output 			tlast, 
 			  output reg [31:0] tdata,
 			 
-			  output reg finish
+			  output reg 		finish		// transaction is completed signal
 			);
 
 
@@ -31,7 +32,11 @@ always @ (posedge aclk)
 		{send_pulse_1d,send_pulse_2d } <= 2'b00;
 	else 
 		{send_pulse_1d,send_pulse_2d } <= {send, send_pulse_1d};
-	
+
+// handshake happened between master and slave
+wire handshake;	
+assign handshake  = tvalid & tready;
+		
 // tdata
 always @ (posedge aclk)
     if (~areset_n)
@@ -45,9 +50,7 @@ always @ (posedge aclk)
 				tdata <= tdata;
 			
 	
-// handshake happened between master and slave
-wire handshake;	
-assign handshake  = tvalid & tready;
+
 	
 // tvalid
 // as soon as the fifo becomes no empty the tvalid goes high
@@ -72,7 +75,7 @@ always @ (posedge aclk)
     if (~areset_n)
         finish <= 1'b0;
 	else
-		if (send)
+		if (send && !send_pulse_1d ) //detect the sned rise and generates 1 pulse
 			finish <= 1'b0;
 		else
 			if (handshake)
