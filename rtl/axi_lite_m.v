@@ -42,7 +42,9 @@ module axis_lite_m (
 			  input	wire         					 app_ren,
 			  output reg [32-1:0]					 app_rdata,
 			  output                                 app_wdone ,
-			  output                                 app_rdone 
+			  output                                 app_werror ,
+			  output                                 app_rdone ,
+			  output                                 app_rerror
 			);
 
 
@@ -74,7 +76,8 @@ axis_m axis_wdata ( .areset_n(aresetn), .aclk(aclk),
 					
 					.finish		(wdata_done)
 			);
-assign m_axi_wstrb = 1; // all bytes of line contain valid data
+assign m_axi_wstrb = (m_axi_wvalid) ? 4'b1111 : 4'b0000; // all bytes of line contain valid data
+//assign m_axi_wstrb =  4'b1111 ; // all bytes of line contain valid data
 
 // wresponse
 wire [31:0] wchnl_resp; // this is bresp of the master. Only the last 2 bits are valid bits
@@ -91,9 +94,11 @@ axis_s axis_resp ( .areset_n(aresetn), .aclk(aclk),
 					.finish		(wresp_slave)
 					);
 					
-assign wresp_slave_final= wresp_slave && (~wchnl_resp[1:0] );
+assign wresp_slave_final= wresp_slave && (wchnl_resp[1:0] ==2'b00 || wchnl_resp[1:0] ==2'b01 );
 					
 assign app_wdone = waddr_done && wdata_done && wresp_slave_final ;
+assign app_werror = wresp_slave && (wchnl_resp[1:0] ==2'b10 || wchnl_resp[1:0] ==2'b11 );
+
 /**************** Read Channel ******************/
 wire raddr_done;
 
@@ -123,8 +128,8 @@ axis_s axis_rdata ( .areset_n(aresetn), .aclk(aclk),
 					.finish		(resp_slave_finish)
 			);
 
-assign app_rdone = raddr_done && resp_slave_finish;
-
+assign app_rdone = raddr_done && resp_slave_finish && (m_axi_rresp[1:0] ==2'b00 || m_axi_rresp[1:0] ==2'b01 );
+assign app_rerror = wresp_slave && (m_axi_rresp[1:0] ==2'b10 || m_axi_rresp[1:0] ==2'b11 );
 	
 
 endmodule
