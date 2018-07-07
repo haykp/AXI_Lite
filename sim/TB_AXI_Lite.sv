@@ -90,42 +90,35 @@ axi_vip_0 inst_axil_s (
 );
    
 	
-task write_data ;
-	$display ("[INFO] Calling write_data task");
+task write_data (input logic [31:0] w_addr=32'haaaa_bbbb,
+				 input logic [31:0] w_data=32'h5aa5_a55a);
+	$display ("[INFO] Calling write_data task, addr=%h, data=%h", w_addr, w_data);
 	
-	itf.app_waddr <= 32'haaaa_bbbb;
-	itf.app_wdata <= 32'h5aa5_a55a;
+	itf.app_waddr <= w_addr;
+	itf.app_wdata <= w_data;
 	@ ( posedge itf.aclk);
 	itf.app_wen <= 1'b1;
 	@ ( posedge itf.aclk);
 	itf.app_wen <= 1'b0;
 	@ ( posedge itf.app_wdone);
 	@ ( posedge itf.aclk);
-
+	
+	$display ("[INFO] END Calling write_data task");
 endtask
 
-task read_data;
-	$display ("[INFO]Calling read_data task");
+
+task read_data ( input logic [31:0] r_addr=0 );
+	$display ("[INFO]Calling read_data task for the address: %h", r_addr);
 	
-	itf.app_raddr <= 32'haaaa_bbbb;
+	itf.app_raddr <= r_addr;
 	@ ( posedge itf.aclk);
-	itf.app_ren <= 1'b1;
-	
+		itf.app_ren <= 1'b1;
+	@ ( posedge itf.aclk);
+		itf.app_ren <= 1'b0;
 	@ ( posedge itf.app_rdone);	
 	@ ( posedge itf.aclk);
-	$display ("[INFO] END Calling read_data task");
-
-endtask	
-
-task read_data1 ( input logic [31:0] r_addr );
-	$display ("[INFO]Calling read_data1 task");
 	
-	itf.app_raddr <= 32'haaaa_bbbb;
-	@ ( posedge itf.aclk);
-	itf.app_ren <= 1'b1;
-	@ ( posedge itf.app_rdone);	
-	@ ( posedge itf.aclk);
-	$display ("[INFO] END Calling read_data1 task");
+	$display ("[INFO] END Calling read_data task, read_data=%h", itf.app_rdata);
 endtask	
 	
 	
@@ -149,10 +142,26 @@ endtask
 		
 		
 		//fork
-				//write_data ;
-			read_data ;
-			read_data1 (32'haaaa_bbbb);
-		//join
+			write_data (.w_addr (32'h1010_1111) ,
+						.w_data (32'h1010_1111) );
+			
+			write_data (.w_addr (32'h0101_0000) ,
+						.w_data (32'h0101_0000) );
+						
+			read_data (32'h1010_1111);
+			read_data (32'h0101_0000);
+			
+			// read from previously backdoor initialized address
+			read_data (32'haaaa_bbbb);
+			read_data (32'h1111_0000);
+		// join
+		
+		repeat (3) 
+			@ ( posedge itf.aclk);
+		
+		$finish;
+		
+		
 	end
 
 // backdoor write to AXIL VIP memory
@@ -162,11 +171,17 @@ assign wstrb_bd = (itf.axi_awvalid && itf.axi_awready) ? 4'b1111 : 4'b0000;
 	initial
 	begin
 		$display ("[INFO] Calling backdoor write strobe task");
-	   slv_agent.mem_model.backdoor_memory_write  (
-	   .addr (32'haaaa_bbbb),
-	   .payload (32'hbbbb_cccc),
-	   .strb (4'b1111)
+		slv_agent.mem_model.backdoor_memory_write  (
+			.addr (32'haaaa_bbbb),
+			.payload (32'haaaa_bbbb),
+			.strb (4'b1111)
 	   );
+	   slv_agent.mem_model.backdoor_memory_write  (
+			.addr (32'h1111_0000),
+			.payload (32'h1111_0000),
+			.strb (4'b1111)
+	   );
+	   
 	end
 	
 endmodule

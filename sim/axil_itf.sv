@@ -37,7 +37,9 @@ interface axil_itf (
 	  logic         					 app_ren;
 	  logic [32-1:0]					 app_rdata;
 	  logic                              app_wdone ;
+	  logic                              app_werror ;
 	  logic                              app_rdone ;
+	  logic                              app_rerror ;
 			  
 endinterface
 
